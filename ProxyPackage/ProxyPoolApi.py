@@ -5,10 +5,13 @@
 """
 
 import os
-from Logger.log import get_logger, get_create_folder
+import sys
+sys.path.append('..')
+
+from Logger.log import get_logger, get_folder
 
 _logger = get_logger(__name__)
-_file_path = get_create_folder()
+_file_path = get_folder()
 
 
 class ProxyPool(object):
@@ -16,6 +19,8 @@ class ProxyPool(object):
     def _get_txt_usable(self):
         path = _file_path + "/usable_proxy_pool.txt"
         new_path = _file_path + "/text.txt"
+        if not os.path.exists(path):
+            return None
         with open(path, "r") as file:
             proxy = file.readline()
             file.close()
@@ -35,7 +40,7 @@ class ProxyPool(object):
             proxy = self._get_txt_usable()
         elif db:
             pass
-        return proxy if proxy else None
+        return proxy
 
     def Delete(self, proxy, db=False):
         pass

@@ -8,13 +8,18 @@
         main: 为该class的主控函数
     UsableIP:
 """
+import sys
+sys.path.append('..')
 
-import requests, threading, time
+import time
+import requests
+import threading
 from multiprocessing import Queue, Process
-from Logger.log import get_logger, get_create_folder
+
+from Logger.log import get_logger, get_folder
 
 _logger = get_logger(__name__)
-_file_path = get_create_folder()
+_file_path = get_folder()
 
 
 class Verification(object):

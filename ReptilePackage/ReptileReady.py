@@ -7,7 +7,11 @@
         ReptileConventional: 常规爬虫行为
 """
 
+import sys
+sys.path.append('..')
+
 from selenium import webdriver
+
 from ProxyPackage.ProxyPoolApi import ProxyPool
 from ProxyPackage.RequestHeader import Header
 

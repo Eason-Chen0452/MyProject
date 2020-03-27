@@ -3,8 +3,12 @@
 """
     启动文件 同时启动 SortOutProxy 和 VerificationProxy
 """
+import sys
+sys.path.append('..')
+
 from time import sleep
 from multiprocessing import Process
+
 from ProxyPackage.VerificationProxy import main as verification_proxy
 from ProxyPackage.SortOutProxy import main as crawl_agent_proxy
 from Logger.log import get_logger

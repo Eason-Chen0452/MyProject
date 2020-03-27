@@ -4,6 +4,8 @@
     将Execl表格 或 数据库 中的数据进行抽取清洗 分析 进行可视化
 """
 
+import sys
+sys.path.append('..')
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,6 +15,11 @@ import statsmodels.api as sm
 from wordcloud import WordCloud
 from imageio import imread
 from pylab import mpl
+
+from Logger.log import get_logger, get_folder
+
+_logger = get_logger(__name__)
+_path = get_folder()
 
 
 class Visualization(object):

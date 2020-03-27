@@ -8,10 +8,15 @@
 
     CrawlProxy: 用于爬取各个免费代理网站
 """
+import sys
+sys.path.append('..')
 
-import requests, time, re
+import re
+import time
+import requests
 from requests.models import Response
 from lxml import etree
+
 from ProxyPackage.RequestHeader import Header
 from Logger.log import get_logger
 

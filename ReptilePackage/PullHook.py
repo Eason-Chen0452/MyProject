@@ -6,9 +6,14 @@
     爬取拉钩招聘信息
 """
 
+import sys
+sys.path.append('..')
 
-import requests, time, pandas as pd
+import time
+import requests
+import pandas as pd
 from random import randint
+
 from ReptilePackage.ReptileReady import Ready
 from Logger.log import get_logger, get_create_folder
 
@@ -118,7 +123,6 @@ class JobSite(object):
         try:
             url = url.get('post_url')
             request = requests.post(url=url, cookies=cookie, headers=header, data=data, proxies=proxy)
-            print(request.text)
             value = request.json()
             assert value.get('success'), 'Reptiles found!'
             return value
@@ -148,45 +152,30 @@ class JobSite(object):
             post_list.append(x)
         return post_list
 
-    def update_cookie_header_session(self, url, header):
+    def update_cookie_header_session(self, url, header, proxy):
         new_header = Ready().get_header()
         header.update(new_header)
-        cookie = self._request_session_cookies(url, header)
+        cookie = self._get_cookies(url, header, proxy)
         _logger.info('Update Cookie, SessionID, User-Agent')
         return header, cookie
 
-    def Crawling(self):
-        pass
-
-    # 主控函数
-    def main(self):
-        url = self._get_url()
-        data = self._get_post()
-        path = self._get_save_file('/data.csv')
-        header = self._get_header()
-        proxy = self._get_proxies()
-        cookie = self._get_cookies(url, header, proxy)
-        post_json = self.request_post(url, cookie, data, header, proxy)
-        number = self._process_json(post_json)
-        page = self._process_page(number)
-        columns = self._get_columns()
-        _logger.info('Total posts %s, Total pages %s' % (number, page))
-        self.Crawling()
-
-
+    def Crawling(self, url, data, header, proxy, cookie, page):
         info = []
         for x in range(1, page+1):
             data.update({'pn': x})
             if randint(0, 1):
-                header, cookie = self.update_cookie_header_session(url, header)
-            post_data = self.request_post(url, cookie, data, header)
+                header, cookie = self.update_cookie_header_session(url, header, proxy)
+            post_data = self.request_post(url, cookie, data, header, proxy)
             if not post_data:
+                check = 5
                 while True:
-                    _logger.info("Reptile found, Reptile found, dormant for one minute")
-                    self._get_proxies(aip=True)
-                    # time.sleep(30)
-                    cookie = self._request_session_cookies(url, header)
-                    post_data = self.request_post(url, cookie, data, header)
+                    check -= 1
+                    if check <= 0:
+                        _logger.info("Reptile found, Reptile found, dormant for one minute")
+                        time.sleep(60)
+                    proxy = self._get_proxies()
+                    cookie = self._get_cookies(url, header, proxy)
+                    post_data = self.request_post(url, cookie, data, header, proxy)
                     if post_data:
                         _logger.info("End the endless loop")
                         break
@@ -194,10 +183,26 @@ class JobSite(object):
             post_list = self.request_list(post_data)
             info += post_list
             _logger.info('Number %s page, Accumulate posts %s' % (x, len(info)))
+        path = self._get_save_file('/data.csv')
+        columns = self._get_columns()
         df = pd.DataFrame(data=info, columns=columns)
         df.to_csv(path, index=False)
         _logger.info("Save")
 
+    # 主控函数
+    def main(self):
+        url = self._get_url()
+        data = self._get_post()
+        header = self._get_header()
+        proxy = self._get_proxies()
+        cookie = self._get_cookies(url, header, proxy)
+        post_json = self.request_post(url, cookie, data, header, proxy)
+        number = self._process_json(post_json)
+        page = self._process_page(number)
+        _logger.info('Total posts %s, Total pages %s' % (number, page))
+        self.Crawling(url, data, header, proxy, cookie, page)
 
-JobSite().main()
+
+if __name__ == "__main__":
+    JobSite().main()
 

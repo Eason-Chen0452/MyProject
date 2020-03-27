@@ -22,7 +22,7 @@ def get_logger(name='Logger'):
     return logger
 
 
-def get_create_folder():
+def get_folder():
     path = os.path.abspath('..')
     path.replace('\\', '/')
     path = path + '/data_file'

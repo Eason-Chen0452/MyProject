@@ -11,15 +11,19 @@
         main: 该class的主控函数
     main: 为控制ProxyFinishing/ProxySave类的主控函数 可独立执行
 """
+import sys
+sys.path.append('..')
 
-import threading, time
+import time
+import threading
 from multiprocessing import Process, Queue
+
 from ProxyPackage.FreeProxy import CrawlProxy
 from ProxyPackage.FreeProxy import ProxyReadyWork as C
-from Logger.log import get_logger, get_create_folder
+from Logger.log import get_logger, get_folder
 
 _logger = get_logger(__name__)
-_file_path = get_create_folder()
+_file_path = get_folder()
 
 
 class ProxyFinishing(object):
