@@ -3,13 +3,18 @@
 """
     通过浏览器查看登入之后的请求头; 绕过登入的验证, 确定特殊路由进行请求
     使用拉钩 boss 猎聘网站
+    爬取拉钩招聘信息
 """
 
 
 import requests, time, pandas as pd
 from random import randint
-from ReptilePackage.ProxyPackage.RequestHeader import Header
-from ReptilePackage.ProxyPackage.ProxyPoolApi import ProxyPool
+from ProxyPackage.RequestHeader import Header
+from ProxyPackage.ProxyPoolApi import ProxyPool
+from Logger.log import get_logger, get_create_folder
+
+_logger = get_logger(__name__)
+data_file = get_create_folder()
 
 
 class JobSite(object):
@@ -52,7 +57,11 @@ class JobSite(object):
     def _get_proxies(self, aip=False):
         if aip:
             proxy = ProxyPool().Get(txt=True)
-            self.proxy = {"http": "http://%s" % proxy}
+            if proxy:
+                self.proxy = {
+                    "http": "http://%s" % proxy,
+                    "https": 'http://%s' % proxy,
+                }
         return self.proxy
 
     # Session Cookies 发起get请求
@@ -166,6 +175,7 @@ class JobSite(object):
                 while True:
                     print('Reptile found, Reptile found, dormant for one minute')
                     self._get_proxies(aip=True)
+                    # time.sleep(30)
                     cookie = self._request_session_cookies(url, header)
                     post_data = self.request_post(url, cookie, data, header)
                     if post_data:
@@ -176,7 +186,8 @@ class JobSite(object):
             info += post_list
             print('Number %s page, Accumulate posts %s' % (x, len(info)))
         df = pd.DataFrame(data=info, columns=columns)
-        df.to_csv('Python.csv', index=False)
+        path = data_file + '/data.csv'
+        df.to_csv(path, index=False)
         print('Save')
 
 

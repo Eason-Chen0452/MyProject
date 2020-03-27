@@ -5,17 +5,27 @@
 """
 
 import logging
+import os
+from logging import handlers
 
 
-def get_logger(name='Log'):
-    value = '%(asctime)s - %(process)d - %(thread)d - %(levelname)s - %(module)s - %(funcName)s: %(lineno)d - %(message)s'
-    logging.basicConfig(level=logging.INFO, filemode='log.txt', format=value)
-    log = logging.getLogger(name)
-    name = name + '.log'
-    file_log = logging.FileHandler(name, encoding='utf-8')
-    file_log.setLevel(logging.WARNING)
-    file_log.setFormatter(logging.Formatter(value))
-    log.addHandler(file_log)
-    return log
+def get_logger(name='Logger'):
+    value = "%(asctime)s - %(process)d - %(thread)d - %(levelname)s - %(module)s - %(funcName)s: %(lineno)d - %(message)s"
+    logging.basicConfig(level=logging.INFO, format=value, filemode='Logger.txt')
+    logger = logging.getLogger(name)
+    log = logging.handlers.TimedRotatingFileHandler(filename='Logger.log', encoding='utf-8', when='D')
+    # log = logging.FileHandler('Logger.log', encoding='utf-8')
+    log.setLevel(logging.WARNING)
+    log.setFormatter(logging.Formatter(value))
+    logger.addHandler(log)
+
+    return logger
 
 
+def get_create_folder():
+    path = os.path.abspath('..')
+    path.replace('\\', '/')
+    path = path + '/data_file'
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path

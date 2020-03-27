@@ -1,17 +1,30 @@
 # -*- coding: utf-8 -*-
 
-
-from ReptilePackage.ProxyPackage.VerificationProxy import Verification
-from ReptilePackage.ProxyPackage import SortOutProxy
+"""
+    启动文件 同时启动 SortOutProxy 和 VerificationProxy
+"""
+from time import sleep
 from multiprocessing import Process
+from ProxyPackage.VerificationProxy import main as verification_proxy
+from ProxyPackage.SortOutProxy import main as crawl_agent_proxy
+from Logger.log import get_logger
+
+_logger = get_logger(__name__)
 
 
 def main():
-    sort_out = Process(target='', name='Sort Out Proxy')
-    # sort_out = Process(target='', name='Sort Out Proxy')
+    crawl_agent = Process(target=crawl_agent_proxy, name='Crawl Agent Proxy')
+    verification = Process(target=verification_proxy, name='Verification Proxy')
+    crawl_agent.start()
+    _logger.info('Crawl Agent Proxy Start')
+    sleep(10)
+    verification.start()
+    _logger.info('Verification Proxy Start')
+    crawl_agent.join()
+    _logger.info('Crawl Agent Proxy Out')
+    verification.join()
+    _logger.info("Verification Proxy Out")
 
-    sort_out.start()
-    sort_out.join()
 
-
-
+if __name__ == "__main__":
+    main()

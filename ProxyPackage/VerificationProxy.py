@@ -11,9 +11,10 @@
 
 import requests, threading, time
 from multiprocessing import Queue, Process
-from Logger.log import get_logger
+from Logger.log import get_logger, get_create_folder
 
 _logger = get_logger(__name__)
+_file_path = get_create_folder()
 
 
 class Verification(object):
@@ -40,27 +41,29 @@ class Verification(object):
 
     # 将文本的ip拿出来
     def get_txt_ip(self, queue_a):
-        file_name = "proxy_pool.txt"
-        with open(file_name, 'r') as file:
+        path = _file_path + "/proxy_pool.txt"
+        with open(path, 'r') as file:
             while True:
                 _proxy = file.readline()
+                time.sleep(1)
                 if not _proxy:
                     break
                 _proxy = _proxy.replace("\n", "")
                 if queue_a.full():
-                    time.sleep(10)  # 验证是很漫长 应对请求的10s中
+                    _logger.info('The queue is full for 5s')
+                    time.sleep(5)
                 queue_a.put(_proxy)
             file.close()
-        _logger.info("%s file read finished" % file_name)
+        _logger.info("%s file read finished" % path)
 
     # 验证IP 通用接口 文本/SSDB/Redis
     def verify_ip(self, queue_a, queue_b):
         while True:
+            if self.check:
+                break
             _proxy = queue_a.get(True)
             if self._check_proxy(_proxy):
                 queue_b.put(_proxy)
-            if self.check:
-                break
 
     def main(self):
         verify_list = []
@@ -99,8 +102,8 @@ class UsableIP(object):
 
     # 将队列的值放进指定文本/库中
     def save_usable_IP(self, queue):
-        file_name = "usable_proxy_pool.txt"
-        with open(file_name, "a+") as file:
+        path = _file_path + "/usable_proxy_pool.txt"
+        with open(path, "a+") as file:
             while True:
                 _proxy = self._get_queue(queue)
                 if not _proxy:

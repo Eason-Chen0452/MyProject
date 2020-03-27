@@ -16,9 +16,10 @@ import threading, time
 from multiprocessing import Process, Queue
 from ProxyPackage.FreeProxy import CrawlProxy
 from ProxyPackage.FreeProxy import ProxyReadyWork as C
-from Logger.log import get_logger
+from Logger.log import get_logger, get_create_folder
 
 _logger = get_logger(__name__)
+_file_path = get_create_folder()
 
 
 class ProxyFinishing(object):
@@ -77,8 +78,8 @@ class ProxySave(object):
 
     # 写入文本的
     def record_proxy_text(self, queue):
-        check, file_name = False, "proxy_pool.txt"
-        with open(file_name, "a+") as file:
+        path = _file_path + "/proxy_pool.txt"
+        with open(path, "w+") as file:
             while True:
                 value = queue.get(True)
                 if value == 'sort':
