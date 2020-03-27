@@ -9,18 +9,14 @@
 
 import requests, time, pandas as pd
 from random import randint
-from ProxyPackage.RequestHeader import Header
-from ProxyPackage.ProxyPoolApi import ProxyPool
+from ReptilePackage.ReptileReady import Ready
 from Logger.log import get_logger, get_create_folder
 
 _logger = get_logger(__name__)
-data_file = get_create_folder()
+_file_path = get_create_folder()
 
 
 class JobSite(object):
-
-    def __init__(self):
-        self.proxy = None
 
     # post 请求需要的参数
     def _get_post(self):
@@ -41,7 +37,7 @@ class JobSite(object):
 
     # header 请求头的处理
     def _get_header(self):
-        header = Header().Get()
+        header = Ready().get_header()
         header.update({
             'Accept': "application/json, text/javascript, */*; q=0.01",
             'Content-Type': "application/x-www-form-urlencoded; charset=UTF-8",
@@ -54,21 +50,26 @@ class JobSite(object):
         })
         return header
 
-    def _get_proxies(self, aip=False):
-        if aip:
-            proxy = ProxyPool().Get(txt=True)
-            if proxy:
-                self.proxy = {
-                    "http": "http://%s" % proxy,
-                    "https": 'http://%s' % proxy,
-                }
-        return self.proxy
+    # proxies 代理
+    def _get_proxies(self):
+        proxy = Ready().get_proxy(txt=True)
+        if proxy:
+            proxy = {
+                "http": "http://%s" % proxy,
+                "https": 'http://%s' % proxy,
+            }
+        return proxy
+
+    # 存放文件的路径
+    def _get_save_file(self, path):
+        path = _file_path + path
+        return path
 
     # Session Cookies 发起get请求
-    def _request_session_cookies(self, url, header):
+    def _get_cookies(self, url, header, proxy):
         url = url.get('get_url')
         request = requests.Session()
-        request = request.get(url=url, headers=header, timeout=10, proxies=self.proxy)
+        request = request.get(url=url, headers=header, timeout=10, proxies=proxy)
         cookie = request.cookies
         return cookie
 
@@ -82,14 +83,13 @@ class JobSite(object):
 
     # 计算爬取的页数
     def _process_page(self, number):
-        # 15 表示这一页显示了多少条, 视网页情况而定
         page = round(number / 15)
         return 30 if page >= 30 else page
 
     # 随机休眠时间 - 必要的时候使用这个函数 进行休眠
     def _random_sleep(self):
         number = randint(1, 30)
-        print('Sleep %s' % number)
+        _logger.info("Sleep %s" % number)
         time.sleep(number)
         return True
 
@@ -114,16 +114,16 @@ class JobSite(object):
         return field
 
     # post 请求
-    def request_post(self, url, cookie, data, header):
+    def request_post(self, url, cookie, data, header, proxy):
         try:
             url = url.get('post_url')
-            request = requests.post(url=url, cookies=cookie, headers=header, data=data, proxies=self.proxy)
+            request = requests.post(url=url, cookies=cookie, headers=header, data=data, proxies=proxy)
             print(request.text)
             value = request.json()
             assert value.get('success'), 'Reptiles found!'
             return value
         except Exception as e:
-            print(e)
+            _logger.warning(e)
             return False
     
     def request_list(self, data):
@@ -149,23 +149,32 @@ class JobSite(object):
         return post_list
 
     def update_cookie_header_session(self, url, header):
-        new_header = Header().Get()
+        new_header = Ready().get_header()
         header.update(new_header)
         cookie = self._request_session_cookies(url, header)
-        print('Update Cookie, SessionID, User-Agent')
+        _logger.info('Update Cookie, SessionID, User-Agent')
         return header, cookie
+
+    def Crawling(self):
+        pass
 
     # 主控函数
     def main(self):
-        self._get_proxies(aip=True)
-        url, data, header = self._get_url(), self._get_post(), self._get_header()
-        cookie = self._request_session_cookies(url, header)
-        post_data = self.request_post(url, cookie, data, header)
-        num = self._process_json(post_data)
-        page = self._process_page(num)
-        print('Total posts %s, Total pages %s' % (num, page))
-        info = []
+        url = self._get_url()
+        data = self._get_post()
+        path = self._get_save_file('/data.csv')
+        header = self._get_header()
+        proxy = self._get_proxies()
+        cookie = self._get_cookies(url, header, proxy)
+        post_json = self.request_post(url, cookie, data, header, proxy)
+        number = self._process_json(post_json)
+        page = self._process_page(number)
         columns = self._get_columns()
+        _logger.info('Total posts %s, Total pages %s' % (number, page))
+        self.Crawling()
+
+
+        info = []
         for x in range(1, page+1):
             data.update({'pn': x})
             if randint(0, 1):
@@ -173,22 +182,21 @@ class JobSite(object):
             post_data = self.request_post(url, cookie, data, header)
             if not post_data:
                 while True:
-                    print('Reptile found, Reptile found, dormant for one minute')
+                    _logger.info("Reptile found, Reptile found, dormant for one minute")
                     self._get_proxies(aip=True)
                     # time.sleep(30)
                     cookie = self._request_session_cookies(url, header)
                     post_data = self.request_post(url, cookie, data, header)
                     if post_data:
-                        print('End the endless loop')
+                        _logger.info("End the endless loop")
                         break
             post_data = self._process_json(post_data, process=True)
             post_list = self.request_list(post_data)
             info += post_list
-            print('Number %s page, Accumulate posts %s' % (x, len(info)))
+            _logger.info('Number %s page, Accumulate posts %s' % (x, len(info)))
         df = pd.DataFrame(data=info, columns=columns)
-        path = data_file + '/data.csv'
         df.to_csv(path, index=False)
-        print('Save')
+        _logger.info("Save")
 
 
 JobSite().main()

@@ -1,20 +1,34 @@
 # -*- utf-8: coding -*-
 
 """
-    ReptileBrowser: 模拟浏览器爬虫行为
-    ReptileConventional: 常规爬虫行为
+    ReptileReady 作用引入自己自定义的包, 其他文件去引用
+        如 引用代理池, 请求头等
+        ReptileBrowser: 模拟浏览器爬虫行为
+        ReptileConventional: 常规爬虫行为
 """
 
 from selenium import webdriver
+from ProxyPackage.ProxyPoolApi import ProxyPool
+from ProxyPackage.RequestHeader import Header
 
 
-class ReptileBrowser(object):
+class Ready(object):
 
-    def __init__(self, path):
+    def __init__(self, path=False):
         self.path = path
 
-    # 使用Google时
-    def chrome(self, headless=False, user_dir=False):
+    # 返回随机浏览器请求头
+    def get_header(self):
+        return Header().Get()
+
+    # 返回一个代理
+    def get_proxy(self, txt=False, db=False):
+        pool = ProxyPool()
+        proxy = pool.Get(txt=txt, db=db)
+        return proxy
+
+    # 模拟浏览器行为 Google
+    def browser_chrome(self, headless=False, user_dir=False):
         opt = None
         if headless:
             opt = webdriver.ChromeOptions()
@@ -30,13 +44,13 @@ class ReptileBrowser(object):
         chrome_browser = webdriver.Chrome(executable_path=self.path, options=opt)
         return chrome_browser
 
-    # 使用火狐时
-    def firefox(self):
+    # 模拟浏览器行为 火狐
+    def browser_firefox(self):
         pass
 
 
-class ReptileConventional(object):
-    b = 1
-    pass
+
+
+
 
 
