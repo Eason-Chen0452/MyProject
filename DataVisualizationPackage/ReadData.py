@@ -11,7 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import jieba
 import statsmodels.api as sm
-# from scipy.misc import imread
+from scipy.misc import imread
 from wordcloud import WordCloud
 from imageio import imread
 from pylab import mpl
@@ -25,7 +25,7 @@ _path = get_folder()
 class Visualization(object):
 
     def _get_path(self):
-        path = "D:\DjangoProject\entry_system\Python_development_engineer.csv"
+        path = _path + '/data.csv'
         return path
 
     # 表格时调用
