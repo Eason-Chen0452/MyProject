@@ -92,13 +92,18 @@ class ProxySave(object):
             file.close()
         _logger.info('proxy_pool, Text Recorded')
 
-    # 写于SSDB
+    # 写入SSDB
     def record_proxy_ssdb(self, queue):
+        pass
+
+    # 写入Rides
+    def record_proxy_redis(self, queue):
         pass
 
     def main(self):
         _record = threading.Thread(target=self.record_proxy_text, args=(self.queue, ), name='Record Proxy Text')
         # _record = threading.Thread(target=self.record_proxy_ssdb, args=(self.queue, ), name='Record Proxy SSDB')
+        # _record = threading.Thread(target=self.record_proxy_redis, args=(self.queue, ), name='Record Proxy SSDB')
         _record.start()
         _logger.info('_record start')
         _record.join()
