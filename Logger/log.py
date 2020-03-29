@@ -23,9 +23,9 @@ def get_logger(name='Logger'):
 
 
 def get_folder():
-    path = os.path.abspath('..')
-    path.replace('\\', '/')
-    path = path + '/data_file'
+    path = os.path.dirname(__file__)
+    path = os.path.dirname(path)
+    path = path + '\\data_file'
     if not os.path.exists(path):
         os.mkdir(path)
     return path
